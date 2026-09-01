@@ -737,6 +737,26 @@ def test_cutout():
         assert ntpf.targetid == tpf.targetid
 
 
+def test_cutout_default_center_non_square():
+    """The default cutout center must be the middle of a non-square TPF.
+
+    TESSCut accepts a tuple ``cutout_size``, so rectangular TPFs are a normal
+    product of ``search_tesscut().download()``.
+    """
+    tpf = TessTargetPixelFile(filename_tess, quality_bitmask=None)
+    rect = tpf.cutout(center=(5, 5), size=(9, 3))
+    # (cadence, row, column)
+    assert rect.flux.shape[1:] == (3, 9)
+
+    default = rect.cutout(size=5)
+    assert default.flux.shape[1:] == (3, 5)
+
+    # the default center is the geometric centre, so it must agree with
+    # passing that (column, row) explicitly
+    explicit = rect.cutout(center=(9 // 2, 3 // 2), size=5)
+    assert_array_equal(default.flux.value, explicit.flux.value)
+
+
 def test_aperture_photometry_nan():
     """Regression test for #648.
 
